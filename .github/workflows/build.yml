@@ -6,7 +6,7 @@ on:
       platform:
         description: "Target platform"
         required: false
-        default: "all"
+        default: "windows"
         type: choice
         options: [all, mac, windows, linux]
 
