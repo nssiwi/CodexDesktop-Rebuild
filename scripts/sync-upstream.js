@@ -337,46 +337,47 @@ async function getAppcastVersion(url) {
   };
 }
 
-async function getWindowsVersion() {
-  const msstore = require("./fetch-msstore");
-  const cookie = await msstore.getCookie();
-  const info = await msstore.getAppInfo("9plm9xgg6vks", "US");
-  if (!info.categoryId) throw new Error("No CategoryID");
-  const pkgs = await msstore.getFileList(cookie, info.categoryId, "Retail");
-  console.log("pkgs结果:", JSON.stringify(pkgs, null, 2));
-  if (pkgs.length === 0) throw new Error("No packages");
-  const pkg = pkgs[0];
-  const url = await msstore.getDownloadUrl(pkg.updateID, pkg.revisionNumber, "Retail", pkg.digest);
-  const verMatch = pkg.name.match(/_(\d+\.\d+\.\d+(?:\.\d+)?)_/);
-  return { version: verMatch?.[1] || "unknown", url, packageName: pkg.name };
-}
 // async function getWindowsVersion() {
 //   const msstore = require("./fetch-msstore");
 //   const cookie = await msstore.getCookie();
 //   const info = await msstore.getAppInfo("9plm9xgg6vks", "US");
 //   if (!info.categoryId) throw new Error("No CategoryID");
 //   const pkgs = await msstore.getFileList(cookie, info.categoryId, "Retail");
+//   console.log("pkgs结果:", JSON.stringify(pkgs, null, 2));
 //   if (pkgs.length === 0) throw new Error("No packages");
-  
-//   const targetArchSuffix = 'x64';
-//   // 优先选择匹配架构的包
-//   let pkg = pkgs.find(p => p.name.includes(targetArchSuffix));
-//   if (!pkg) {
-//     // 如果没有精确匹配，尝试模糊匹配或回退到第一个
-//     console.warn(`No exact match for ${targetArchSuffix}, using first available`);
-//     pkg = pkgs[0];
-//   }
-  
+//   const pkg = pkgs[0];
 //   const url = await msstore.getDownloadUrl(pkg.updateID, pkg.revisionNumber, "Retail", pkg.digest);
 //   const verMatch = pkg.name.match(/_(\d+\.\d+\.\d+(?:\.\d+)?)_/);
-//   return { 
-//     version: verMatch?.[1] || "unknown", 
-//     url, 
-//     packageName: pkg.name,
-//     architecture: pkg.name.includes('arm64') ? 'arm64' : 
-//                   pkg.name.includes('x64') ? 'x64' : 'unknown'
-//   };
+//   return { version: verMatch?.[1] || "unknown", url, packageName: pkg.name };
 // }
+
+async function getWindowsVersion() {
+  const msstore = require("./fetch-msstore");
+  const cookie = await msstore.getCookie();
+  const info = await msstore.getAppInfo("9plm9xgg6vks", "US");
+  if (!info.categoryId) throw new Error("No CategoryID");
+  const pkgs = await msstore.getFileList(cookie, info.categoryId, "Retail");
+  if (pkgs.length === 0) throw new Error("No packages");
+  
+  const targetArchSuffix = 'x64';
+  // 优先选择匹配架构的包
+  let pkg = pkgs.find(p => p.name.includes(targetArchSuffix));
+  if (!pkg) {
+    // 如果没有精确匹配，尝试模糊匹配或回退到第一个
+    console.warn(`No exact match for ${targetArchSuffix}, using first available`);
+    pkg = pkgs[0];
+  }
+  
+  const url = await msstore.getDownloadUrl(pkg.updateID, pkg.revisionNumber, "Retail", pkg.digest);
+  const verMatch = pkg.name.match(/_(\d+\.\d+\.\d+(?:\.\d+)?)_/);
+  return { 
+    version: verMatch?.[1] || "unknown", 
+    url, 
+    packageName: pkg.name,
+    architecture: pkg.name.includes('arm64') ? 'arm64' : 
+                  pkg.name.includes('x64') ? 'x64' : 'unknown'
+  };
+}
 
 // ─── Extract macOS ──────────────────────────────────────────────
 
